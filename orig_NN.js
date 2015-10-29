@@ -1,17 +1,25 @@
-UnitBase = require("./UnitBase").UnitBase;
-var base = new UnitBase();
-var forwardMultiplyGate = require("./NeuralNet").forwardMultiplyGate;
-var forwardAddGate = require("./NeuralNet").forwardAddGate;
-var forwardCircuit = require("./NeuralNet").forwardCircuit;
-
-
-TestLogic = function() {
+function forwardMultiplyGate(x, y) {
+        return x * y;
+}
+function forwardAddGate(a, b) {
+  return a + b;
 };
+function forwardCircuit(x,y,z) {
+  var q = forwardAddGate(x, y);
+  var f = forwardMultiplyGate(q, z);
+  return f;
+};
+ 
 
-
-
-TestLogic.prototype = {
-
+module.exports.forwardMultiplyGate = forwardMultiplyGate;
+module.exports.forwardAddGate = forwardAddGate;
+module.exports.forwardCircuit = forwardCircuit;
+//http://karpathy.github.io/neuralnets/
+/// tests
+ 
+UnitTests = function() {
+};
+UnitTests.prototype = {
     forwardMultTest : function() {
         console.log("//////////// forwardMultTest");
         var verdict = forwardMultiplyGate(-2,3) === -6 ? "PASS" : "FAIL";
@@ -169,11 +177,9 @@ TestLogic.prototype = {
         console.log("numericalGradientCheckTest " + verdict );
  
     },
-};
-
-console.log(" erm ? " ) ; 
-var tests = new TestLogic();
-
+}
+ 
+var tests = new UnitTests();
 tests.forwardMultTest();
 tests.randomLocalSearchTest();
 tests.backPropogationTest();

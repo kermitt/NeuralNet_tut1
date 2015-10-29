@@ -1,24 +1,32 @@
-UnitBase = require("./UnitBase").UnitBase;
-var base = new UnitBase();
-var forwardMultiplyGate = require("./NeuralNet").forwardMultiplyGate;
-var forwardAddGate = require("./NeuralNet").forwardAddGate;
-var forwardCircuit = require("./NeuralNet").forwardCircuit;
 
 
 TestLogic = function() {
+
+    this.forwardMultTest();
+    this.backPropogationTest();
+    this.randomLocalSearchTest();
+    this.analyticGradientTest();
+    this.forwardCircuitTest();
+    this.chainRuleTest();
+    this.numericalGradientCheckTest();
 };
-
-
+function log( s ) { 
+    console.log( s )
+}
+function show( verdict, result, func ) { 
+    console.log( verdict + "\t" + result + "\t" + func ); 
+}
 
 TestLogic.prototype = {
 
     forwardMultTest : function() {
-        console.log("//////////// forwardMultTest");
-        var verdict = forwardMultiplyGate(-2,3) === -6 ? "PASS" : "FAIL";
-        console.log( "forwardMultiplyGate: " + verdict );
+        var result = forwardMultiplyGate(-2,3);
+        var verdict = base.assertEquals(result,-6);
+        show( verdict, result.toFixed(4), "forwardMultTest"); 
     },
     backPropogationTest : function() {
-        console.log("//////////// backPropogationTest");
+
+        //co nsole.log("//////////// backPropogationTest");
         var x = -2, y = 3;
         var out = forwardMultiplyGate(x, y); // -6
         var h = 0.0001;
@@ -33,19 +41,30 @@ TestLogic.prototype = {
         var out3 = forwardMultiplyGate(x, yph); // -6.0002
         var y_derivative = (out3 - out) / h; // -2.0
  
-        console.log("x_derivative: " + x_derivative + "   y_derivative: " + y_derivative );
+        //co nsole.log("x_derivative: " + x_derivative + "   y_derivative: " + y_derivative );
  
         var step_size = 0.01;
         //var out = forwardMultiplyGate(x, y); // before: -6
         x = x + step_size * x_derivative; // x becomes -1.97
-        y = y + step_size * y_derivative; // y becomes 2.98
+        var predictedXvalue = -1.97;
+
+
+        var fuzz = 0.0000001; 
+        var verdictX = base.assertCloseEnough(x, predictedXvalue, fuzz);
+     y = y + step_size * y_derivative; // y becomes 2.98
+        fuzz  = 000001;
+        var predictedYvalue = 2.98;
+        var verdictY = base.assertCloseEnough(y, predictedYvalue, fuzz);
+
         var result = forwardMultiplyGate(x, y); // -5.87! exciting.
-        console.log("Result: " + result );
+        var predictedvalue = -5.87;
+        var verdict = base.assertCloseEnough(y, predictedYvalue, fuzz);
+
+        show( verdict, result.toFixed(4) + " = " + predictedvalue.toFixed(4) + "~" + fuzz, "\tbackPropogationTest");   
  
     },
- 
     analyticGradientTest : function() {
-        console.log("//////////// analyticGradientTest");
+     //   console.log("//////////// analyticGradientTest");
      
         var x = -2, y = 3;
         var out = forwardMultiplyGate(x, y); // before: -6
@@ -56,18 +75,21 @@ TestLogic.prototype = {
         x += step_size * x_gradient; // -2.03
         y += step_size * y_gradient; // 2.98
         var result = forwardMultiplyGate(x, y); // -5.87. Higher output! Nice.
-        console.log("Result: " + result );
+       var verdict = base.assertEquals(result, -5.8706);
+       show(verdict,result,"analyticGradientTest");
     },
  
  
     randomLocalSearchTest : function() {
+        /* UGLY! Do not use */
+
         var x = -2, y = 3; // some input values
  
         // try changing x,y randomly small amounts and keep track of what works best
-        console.log("//////////// Random Local Search ( blech )");
         var tweak_amount = 0.01;
         var best_out = -Infinity;
         var best_x = x, best_y = y;
+        var transition_count = 0;
         for(var k = 0; k < 100; k++) {
             var x_try = x + tweak_amount * (Math.random() * 2 - 1); // tweak x a bit
             var y_try = y + tweak_amount * (Math.random() * 2 - 1); // tweak y a bit
@@ -76,21 +98,22 @@ TestLogic.prototype = {
                 // best improvement yet! Keep track of the x and y
                 best_out = out;
                 best_x = x_try, best_y = y_try;
+                transition_count++;
             }
         }
-        console.log("BestX: " + best_x + "  BestY: " + best_y );
         var result = forwardMultiplyGate(best_x,best_y);
-        console.log("Result: " + result );
+        var verdict = base.assertCloseEnough(result,-5.9,0.1);
+        show( verdict, result.toFixed(4) + " with " + transition_count + " of 100 loops", "randomLocalSearchTest"); 
+
     },
     forwardCircuitTest : function() {
-        console.log("//////////// forwardCircuitTest");
         var x = -2, y = 5, z = -4;
         var f = forwardCircuit(x, y, z); // output is -12
-        console.log("Result: " + f );
+        var verdict = base.assertEquals(f,-12);
+        show(verdict,f,"forwardCircuitTest");
     },
  
     chainRuleTest : function() {
-        console.log("//////////// Chain Rule Test");
         // initial conditions
         var x = -2, y = 5, z = -4;
         var q = forwardAddGate(x, y); // q is 3
@@ -123,9 +146,11 @@ TestLogic.prototype = {
  
         // Our circuit now better give higher output:
         var q = forwardAddGate(x, y); // q becomes 2.92
-        var f = forwardMultiplyGate(q, z); // output is -11.59, up from -12! Nice!
+        var f = forwardMultiplyGate(q, z); // output is -11.5924, up from -12! Nice!
  
-        console.log("Result: " + f );
+//        console.log("Result: " + f );
+        var verdict = base.assertEquals(f, -11.5924);
+        show(verdict,f + " up from -12!","chainRuleTest" );
     },
  
     numericalGradientCheckTest : function() {
@@ -135,7 +160,6 @@ TestLogic.prototype = {
         //Remember that we can do this simply by computing the
         //numerical gradient and making sure that we get [-4, -4, 3]
         //for x,y,z. Here's the code:
-        console.log("//////////// Numerical Gradient Check");
        
         // initial conditions
         var x = -2, y = 5, z = -4;
@@ -145,7 +169,16 @@ TestLogic.prototype = {
         var x_derivative = (forwardCircuit(x+h,y,z) - forwardCircuit(x,y,z)) / h; // -4
         var y_derivative = (forwardCircuit(x,y+h,z) - forwardCircuit(x,y,z)) / h; // -4
         var z_derivative = (forwardCircuit(x,y,z+h) - forwardCircuit(x,y,z)) / h; // 3
- 
+
+
+        var fuzz = 0.001;
+        var verdictX = base.assertCloseEnough(x_derivative,-3.99999,fuzz);
+        var verdictY = base.assertCloseEnough(y_derivative,-3.99999,fuzz);
+        var verdictZ = base.assertCloseEnough(z_derivative,3.00000,fuzz);
+        show( verdictX, "x_derivative: " + x_derivative.toFixed(4), "numericalGradientCheckTest");
+        show( verdictY,"y_derivative: " + y_derivative.toFixed(4), "numericalGradientCheckTest");
+        show( verdictZ,"z_derivative: " + z_derivative.toFixed(4), "numericalGradientCheckTest");
+         /*
         var isOk = true;
         if ( x_derivative.toFixed(0) !== -4 ) {
             isOk = false;
@@ -167,17 +200,17 @@ TestLogic.prototype = {
         }
         var verdict = isOk ? "PASS" : "FAIL";
         console.log("numericalGradientCheckTest " + verdict );
- 
+ */
     },
 };
 
-console.log(" erm ? " ) ; 
-var tests = new TestLogic();
+////////////// Boiler plate follows /////////
 
-tests.forwardMultTest();
-tests.randomLocalSearchTest();
-tests.backPropogationTest();
-tests.analyticGradientTest();
-tests.forwardCircuitTest();
-tests.chainRuleTest();
-tests.numericalGradientCheckTest();
+UnitBase = require("./UnitBase").UnitBase;
+var base = new UnitBase();
+var forwardMultiplyGate = require("./NeuralNet").forwardMultiplyGate;
+var forwardAddGate = require("./NeuralNet").forwardAddGate;
+var forwardCircuit = require("./NeuralNet").forwardCircuit;
+
+
+new TestLogic(); // Hit the constructor

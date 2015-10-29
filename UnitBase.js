@@ -16,9 +16,10 @@ UnitBase.prototype = {
 
     assertCloseEnough: function(actual, goal, fuzz) {
         var verdict = this.FAIL;
-        if (actual < (goal + fuzz) && actual > (goal - fuzz)) {
-            verdict = this.PASS;
-        }
+            if (actual < (goal + fuzz) && actual > (goal - fuzz)) {
+                verdict = this.PASS;
+            }
+        
         return verdict;
     }
 };

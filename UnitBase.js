@@ -9,6 +9,10 @@ UnitBase.prototype = {
     assertEquals: function(a, b) {
         return a === b ? this.PASS : this.FAIL;
     },
+    
+    assertMoreThan: function(a, b) {
+        return a > b ? this.PASS : this.FAIL;
+    },
 
     assertUnequals: function(a, b) {
         return a === b ? this.PASS : this.FAIL;

@@ -2,13 +2,22 @@
 
 TestLogic = function() {
 
+    this.a_single_neuron(); // put it all together
+    log("---------------");
+    // below tests little pieces
+    this.forwardCircuitFastTest();
     this.forwardMultTest();
     this.backPropogationTest();
-    this.randomLocalSearchTest();
     this.analyticGradientTest();
     this.forwardCircuitTest();
     this.chainRuleTest();
     this.numericalGradientCheckTest();
+
+    // randomLocalSearchTest() just shows what to  
+    // _not_ do ( but it is easy to understand )
+    // This will not be used in the future.
+    this.randomLocalSearchTest();
+
 };
 function log( s ) { 
     console.log( s )
@@ -18,6 +27,106 @@ function show( verdict, result, func ) {
 }
 
 TestLogic.prototype = {
+
+    a_single_neuron : function() {
+// create input units
+var a = new Unit(1.0, 0.0);
+var b = new Unit(2.0, 0.0);
+var c = new Unit(-3.0, 0.0);
+var x = new Unit(-1.0, 0.0);
+var y = new Unit(3.0, 0.0);
+
+// create the gates
+var mulg0 = new multiplyGate();
+var mulg1 = new multiplyGate();
+var addg0 = new addGate();
+var addg1 = new addGate();
+var sg0 = new sigmoidGate();
+
+// do the forward pass
+var forwardNeuron = function() {
+  ax = mulg0.forward(a, x); // a*x = -1
+  by = mulg1.forward(b, y); // b*y = 6
+  axpby = addg0.forward(ax, by); // a*x + b*y = 5
+  axpbypc = addg1.forward(axpby, c); // a*x + b*y + c = 2
+  s = sg0.forward(axpbypc); // sig(a*x + b*y + c) = 0.8808
+};
+forwardNeuron();
+
+var ciruit_output_verdict = base.assertCloseEnough(s.value,0.8808,0.001);
+var original_s_value = s.value; // just a tmp var for the unit test
+
+//console.log('circuit output: ' + s.value); // prints 0.8808
+show(ciruit_output_verdict,s.value.toFixed(4),"a_single_neuron | ciruit_output_verdict");
+
+//And now lets compute the gradient: Simply iterate 
+//in reverse order and call the backward function! 
+//Remember that we stored the pointers to the units 
+//when we did the forward pass, so every gate has 
+//access to its inputs and also the output unit it 
+//previously produced.
+
+s.grad = 1.0;
+sg0.backward(); // writes gradient into axpbypc
+addg1.backward(); // writes gradients into axpby and c
+addg0.backward(); // writes gradients into ax and by
+mulg1.backward(); // writes gradients into b and y
+mulg0.backward(); // writes gradients into a and x
+
+//Note that the first line sets the gradient at the 
+//output (very last unit) to be 1.0 to start off the 
+//gradient chain. This can be interpreted as tugging 
+//on the last gate with a force of +1. In other words, 
+//we are pulling on the entire circuit to induce the 
+//forces that will increase the output value. If we 
+//did not set this to 1, all gradients would be computed 
+//as zero due to the multiplications in the chain rule. 
+//Finally, lets make the inputs respond to the computed 
+//gradients and check that the function increased:
+
+var step_size = 0.01;
+// Compare these values to forwardCircuitFastTest()! The same!
+a.value += step_size * a.grad; // a.grad is -0.105
+b.value += step_size * b.grad; // b.grad is 0.315
+c.value += step_size * c.grad; // c.grad is 0.105
+x.value += step_size * x.grad; // x.grad is 0.105
+y.value += step_size * y.grad; // y.grad is 0.210
+
+forwardNeuron();
+var verdict = base.assertMoreThan(s.value,original_s_value); 
+//console.log('circuit output after one backprop: ' + s.value); // prints 0.8825
+show(verdict,s.value.toFixed(4),"a_single_neuron | sig value is more than " + original_s_value.toFixed(4));
+
+
+//Success! 0.8825 is higher than the previous value, 0.8808. Finally, lets verify that we implemented 
+//the backpropagation correctly by checking the numerical gradient:
+
+
+
+
+    },
+
+
+forwardCircuitFastTest : function() {
+
+var a = 1, b = 2, c = -3, x = -1, y = 3;
+var h = 0.0001;
+var a_grad = (forwardCircuitFast(a+h,b,c,x,y) - forwardCircuitFast(a,b,c,x,y))/h;
+var b_grad = (forwardCircuitFast(a,b+h,c,x,y) - forwardCircuitFast(a,b,c,x,y))/h;
+var c_grad = (forwardCircuitFast(a,b,c+h,x,y) - forwardCircuitFast(a,b,c,x,y))/h;
+var x_grad = (forwardCircuitFast(a,b,c,x+h,y) - forwardCircuitFast(a,b,c,x,y))/h;
+var y_grad = (forwardCircuitFast(a,b,c,x,y+h) - forwardCircuitFast(a,b,c,x,y))/h;
+
+console.log("PASS a: " + a_grad.toFixed(3) + "\tforwardCircuitFast");
+console.log("PASS b: " + b_grad.toFixed(3) + "\tforwardCircuitFast");
+console.log("PASS c: " + c_grad.toFixed(3) + "\tforwardCircuitFast");
+console.log("PASS x: " + x_grad.toFixed(3) + "\tforwardCircuitFast");
+console.log("PASS y: " + y_grad.toFixed(3) + "\tforwardCircuitFast");
+
+//These all give the same values as the backpropagated gradients [-0.105, 0.315, 0.105, 0.105, 0.210]. Nice!
+//I.e., compare this values to the ones in the a_single_neuron(). The same!
+
+}, 
 
     forwardMultTest : function() {
         var result = forwardMultiplyGate(-2,3);
@@ -103,7 +212,7 @@ TestLogic.prototype = {
         }
         var result = forwardMultiplyGate(best_x,best_y);
         var verdict = base.assertCloseEnough(result,-5.9,0.1);
-        show( verdict, result.toFixed(4) + " with " + transition_count + " of 100 loops", "randomLocalSearchTest"); 
+        show( verdict, result.toFixed(4) + " with " + transition_count + " of 100 loops", "randomLocalSearchTest ( p.s., this is naive/bad )"); 
 
     },
     forwardCircuitTest : function() {
@@ -178,39 +287,24 @@ TestLogic.prototype = {
         show( verdictX, "x_derivative: " + x_derivative.toFixed(4), "numericalGradientCheckTest");
         show( verdictY,"y_derivative: " + y_derivative.toFixed(4), "numericalGradientCheckTest");
         show( verdictZ,"z_derivative: " + z_derivative.toFixed(4), "numericalGradientCheckTest");
-         /*
-        var isOk = true;
-        if ( x_derivative.toFixed(0) !== -4 ) {
-            isOk = false;
-            console.log("\t\tBOO x_derivative: " + x_derivative) ;         
-        } else {
-            console.log("\t\tYAY x_derivative: " + x_derivative) ;         
-        }
-        if ( y_derivative !== -4 ) {
-            isOk = false;
-            console.log("\t\tBOO y_derivative: " + y_derivative) ;         
-        } else {
-            console.log("\t\tYAY y_derivative: " + y_derivative) ;         
-        }
-        if ( z_derivative !== 3 ) {
-            isOk = false;
-            console.log("\t\tBOO z_derivative: " + z_derivative) ;         
-        } else{
-            console.log("\t\tYAY z_derivative: " + z_derivative) ;         
-        }
-        var verdict = isOk ? "PASS" : "FAIL";
-        console.log("numericalGradientCheckTest " + verdict );
- */
+
+
     },
 };
 
-////////////// Boiler plate follows /////////
-
+////////////// Imports follows /////////
+// UnitBase/base = mini unit test 'harness'
 UnitBase = require("./UnitBase").UnitBase;
 var base = new UnitBase();
+
+// Follows in the actual stuff that we are interested in
 var forwardMultiplyGate = require("./NeuralNet").forwardMultiplyGate;
 var forwardAddGate = require("./NeuralNet").forwardAddGate;
 var forwardCircuit = require("./NeuralNet").forwardCircuit;
-
-
-new TestLogic(); // Hit the constructor
+var Unit = require("./NeuralNet").Unit;
+var multiplyGate = require("./NeuralNet").multiplyGate;
+var addGate = require("./NeuralNet").addGate;
+var sigmoidGate = require("./NeuralNet").sigmoidGate;
+var forwardCircuitFast = require("./NeuralNet").forwardCircuitFast;
+// Hit the constructor
+new TestLogic(); 

@@ -44,7 +44,9 @@ var NeuralNet = function(inputs_ary, layers, nodes_per_layer ) {
 }
 
 NeuralNet.prototype = {
+	feedforward : function() {
 
+	},
 	buildout_graph : function() { 
 		// the input matrix ( slightly 'tricky' because bias( +1 ) and the weights (*2))
 		for ( var i = 0; i < this.layers; i++ ) {
@@ -59,7 +61,6 @@ NeuralNet.prototype = {
 				this.inputs[i][j] = new Input();
 				for ( var k = 0; k < this.nodes_per_layer; k++ ) {
 					this.inputs[i][j].addWeight();
-
 				}
 			}
 		}

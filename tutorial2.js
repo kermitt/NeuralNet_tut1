@@ -1,10 +1,12 @@
-Node = function( i,j) {
+"use strict"
+
+var Node = function( i,j) {
 	this.layer = i;
 	this.depth = j;
 	this.value = 0;
 }
 
-Input = function(  ) {
+var Input = function(  ) {
 	this.weights = [];
 }
 
@@ -14,11 +16,10 @@ Input.prototype = {
 	}
 }
 
-NeuralNet = function(inputs_ary, layers, nodes_per_layer ) {
-	//console.log("in " + inputs_ary.length + " l " + layers + " n " + nodes_per_layer); 
+var NeuralNet = function(inputs_ary, layers, nodes_per_layer ) {
 	this.layers = layers;
-	//this.nodes_per_layer = nodes_per_layer;
 	this.inputs_ary = inputs_ary;
+	this.nodes_per_layer = nodes_per_layer;
 	// --- default the bias to the traditional value 
 	this.bias = 1;
 
@@ -43,32 +44,32 @@ NeuralNet.prototype = {
 
 	buildout_graph : function() { 
 		// the input matrix ( slightly 'tricky' because bias( +1 ) and the weights (*2))
-		for ( var i = 0; i < this.inputs.length; i++ ) {
+		for ( var i = 0; i < this.layers; i++ ) {
 			var cipbftl = 0;
 			if ( i === 0 ) {
 				cipbftl = this.inputs_ary.length + 1;
 			} else {	
 				cipbftl = this.nodes_per_layer + 1;
 			}
-console.log("iiii " + i ); 
+
 			for ( var j = 0; j < cipbftl; j++ ) {
 				this.inputs[i][j] = new Input();
 				for ( var k = 0; k < this.nodes_per_layer; k++ ) {
 					this.inputs[i][j].addWeight();
+
 				}
 			}
 		}
+	},
 
-		console.log(" --------- "); 
-	}
 };
 
-UnitTests = function( ) {
+var UnitTests = function( ) {
 	this.setup();
 	this.test_shape_before_feedforward();
+//		this.display();
 
 };
-var count = 0; 
 UnitTests.prototype = {
 
 	setup : function() { 
@@ -80,36 +81,47 @@ UnitTests.prototype = {
 
 		this.NN = new NeuralNet( this.inputs, this.layers, this.nodes_per_layer); 
 		this.NN.inputs[0][0].weights[0] = 1;
-		this.NN.inputs[0][1].weights[0] = 2;
+		this.NN.inputs[0][0].weights[1] = 2;
+
+
 
 	},
 
 	test_shape_before_feedforward : function() {
-		
-		for ( var layer in this.NN.inputs ) {
-				console.log("LAYER: " + layer );
 
-			for ( var depth in this.NN.inputs[layer] ) {
-				console.log("DEPTH : " + depth ) ; 
+		// the +1 issue in this func is to cover the bias
 
-				var input = this.NN.inputs[layer][depth];
+		// ought to have 1 more input than initial inputs
+		var expected1 = this.NN.inputs[0].length;
+		var actual1 = this.inputs.length;
 
-				console.log( input.weights.length );
+		// after the firstith input layer then 
+		// there ought to be as many inputs-per-layer as
+		// nodes-per-layer + 1
 
+		var expected2 = this.NN.inputs[1].length;
+		var actual2 = this.NN.nodes[1].length;
+
+		// needed because of the bias
+		actual1 += 1;
+		actual2 += 1;
+
+		this.assertTrue("bias initial shape", expected1, actual1);
+		this.assertTrue("bias shape", expected2, actual2);
+
+	},
+	display : function() {
+
+		for ( var i = 0; i < this.layers; i++ ) {
+			console.log(" layer " + i ); 
+			for ( var j = 0; j < this.NN.inputs[i].length; j++ ) {
+				console.log("\tdepth " + j );
+				var obj = this.NN.inputs[i][j];
+				for ( var k = 0 ; k < obj.weights.length; k++) { 
+					console.log("\t\t" + k + "\t" + obj.weights[k]);
+				}	
 			}
-
 		}
-
-		console.log("initial inputs length " + this.inputs.length );
-		console.log("after adding the bias " + this.NN.inputs[0].length ); 
-		this.assertTrue("initial bias", (this.inputs.length + 1 ),this.NN.inputs[0].length);
-
-console.log("this.NN.inputs[0].length: " + this.NN.inputs[0].length ); 
-console.log("this.NN.nodes[0].length: " + this.NN.nodes[0].length ); 
-
-//		this.assertTrue("correct node size", this.nodes_per_layer
-//		this.assertTrue("post inital bias", (this.inputs.length + 1 ),this.NN.inputs[1].length);
-
 	},
 
 	assertTrue : function(msg, expected, actual ) {
@@ -119,9 +131,6 @@ console.log("this.NN.nodes[0].length: " + this.NN.nodes[0].length );
 		}
 		console.log( verdict + "\t" + msg ); 
 	}
-
-
-
 };
 
 

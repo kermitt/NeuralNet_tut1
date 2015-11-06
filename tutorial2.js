@@ -1,5 +1,8 @@
 "use strict"
 
+// tutorial following 
+//http://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
+
 var Node = function( i,j) {
 	this.layer = i;
 	this.depth = j;
@@ -67,22 +70,38 @@ NeuralNet.prototype = {
 var UnitTests = function( ) {
 	this.setup();
 	this.test_shape_before_feedforward();
-//		this.display();
+		this.display();
 
 };
 UnitTests.prototype = {
 
 	setup : function() { 
 
-
 		this.inputs = [.05,.1];
 		this.layers = 2;
 		this.nodes_per_layer = 2; 
 
 		this.NN = new NeuralNet( this.inputs, this.layers, this.nodes_per_layer); 
-		this.NN.inputs[0][0].weights[0] = 1;
-		this.NN.inputs[0][0].weights[1] = 2;
-
+		// layer 1
+		// input1 weight
+		this.NN.inputs[0][0].weights[0] = .15;
+		this.NN.inputs[0][0].weights[1] = .2;
+		// input2 weight
+		this.NN.inputs[0][1].weights[0] = .25;
+		this.NN.inputs[0][1].weights[1] = .3;
+		// input bias weight
+		this.NN.inputs[0][2].weights[0] = .35;
+		this.NN.inputs[0][2].weights[1] = .35;
+		// layer 2
+		// input1 weight
+		this.NN.inputs[1][0].weights[0] = .40;
+		this.NN.inputs[1][0].weights[1] = .45;
+		// input2 weight
+		this.NN.inputs[1][1].weights[0] = .50;
+		this.NN.inputs[1][1].weights[1] = .55;
+		// input bias weight
+		this.NN.inputs[1][2].weights[0] = .6;
+		this.NN.inputs[1][2].weights[1] = .6;
 
 
 	},

@@ -47,7 +47,7 @@ UnitTest.prototype = {
     },
     setup: function() {
         var inputs = [.05, .1];
-        var layers = 2;
+        var layers = 4;
         var depth = 2;
         this.NN = new NeuralNet(inputs, layers, depth);
 

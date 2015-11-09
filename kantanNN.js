@@ -20,8 +20,7 @@ Layer.prototype = {
         for (var index in ary) {
             var input = new Input(ary[index]);
             for (var node_index in this.nodes) {
-                //input.weights[node_index] = Math.random();
-                input.weights[node_index] = -1; //Math.random();
+                input.weights[node_index] = Math.random();
             }
             this.inputs.push(input);
         }
@@ -50,6 +49,17 @@ var NeuralNet = function(initial_inputs, layer_count, depth_count) {
 NeuralNet.prototype = {
     feedforward: function() {
         for (var x in this.matrix) {
+
+            // populate _this_ layer's inputs from last layer's nodes
+            if ( x > 0 ) { 
+                for (var i = 0; i < this.matrix[x - 1].nodes.length; i++) {
+                    var last_node = this.matrix[x - 1].nodes[i];
+                    this.matrix[x].inputs[i].value = last_node; 
+                    console.log(" last is " + last_node );
+                }
+            }
+
+
             for (var i = 0; i < this.matrix[x].inputs.length; i++) {
                 var input = this.matrix[x].inputs[i];
                 var v = input.value;
@@ -65,25 +75,12 @@ NeuralNet.prototype = {
                 }
             }
 
+            // populate the nodes
             for (var j = 0; j < this.matrix[x].nodes.length; j++) {
                 var before = this.matrix[x].nodes[j];
                 var after = this.sigmoidGate(before);
                 this.matrix[x].nodes[j] = after;
-                //console.log("Before=" + before + "  After=" + after ); 
-                if (x < this.matrix.length - 1) {
-
-                }
-            }
-        }
-
-        //   for ( var x in this.matrix ) {
-        for (var j = 0; j < this.matrix[x].nodes.length; j++) {
-            var before = this.matrix[x].nodes[j];
-            var after = this.sigmoidGate(before);
-            this.matrix[x].nodes[j] = after;
-            //console.log("Before=" + before + "  After=" + after ); 
-            if (x < this.matrix.length - 1) {
-
+                console.log("Before=" + before + "  After=" + after );
             }
         }
     },

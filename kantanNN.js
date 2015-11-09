@@ -20,7 +20,9 @@ Layer.prototype = {
 		for ( var index in ary ) {
 			var input = new Input( ary[index]);
 			for ( var node_index in this.nodes ) {
-				input.weights[node_index] = Math.random();
+				//input.weights[node_index] = Math.random();
+				input.weights[node_index] = -1;//Math.random();
+
 			}
 			this.inputs.push( input );
 		}
@@ -58,21 +60,35 @@ NeuralNet.prototype = {
 					var weight = input.weights[j];
 					var node = this.matrix[x].nodes[j];
 					var t = input.weights[j] * input.value;
+					
 					this.matrix[x].nodes[j] += t;
-					//console.log(" x " + x  + " j " + j + "  value " + this.matrix[x].nodes[j] +" w " + input.weights[j] + " in " + v ); 
+					console.log(x + " " + j + "    in.v=" + input.value + " w " + input.weights[j] + " mult " + t );
 				}	
-				// Sigmoid
 			}
-		}
 
-		for ( var x in this.matrix ) {
 			for ( var j = 0; j < this.matrix[x].nodes.length; j++ ) {
 				var before = this.matrix[x].nodes[j];
 				var after = this.sigmoidGate(before);
 				this.matrix[x].nodes[j] = after; 
-				console.log( "SIG " + x + "   " + j + " before " + before + "  after  " + this.matrix[x].nodes[j]);
+				//console.log("Before=" + before + "    After=" + after ); 
+				if ( x < this.matrix.length - 1 ) {
+
+				}
 			}
+
 		}
+
+//		for ( var x in this.matrix ) {
+			for ( var j = 0; j < this.matrix[x].nodes.length; j++ ) {
+				var before = this.matrix[x].nodes[j];
+				var after = this.sigmoidGate(before);
+				this.matrix[x].nodes[j] = after; 
+				//console.log("Before=" + before + "    After=" + after ); 
+				if ( x < this.matrix.length - 1 ) {
+
+				}
+			}
+//		}
 	},
 	sigmoidGate : function(x) { 
   		return 1 / (1 + Math.exp(-x));
@@ -86,10 +102,23 @@ var UnitTest = function() {
 	this.test_weights();
 	this.test_feedforward();
 	this.test_math();
+	this.display();
 	console.log("The end...");
 }
 
 UnitTest.prototype = {
+
+	display : function() {
+		console.log(" ----------------------- ");
+		for ( var x in this.NN.matrix ) {
+			for ( var j = 0; j < this.NN.matrix[x].nodes.length; j++ ) {
+				var v = this.NN.matrix[x].nodes[j];
+				var i = this.NN.matrix[x].inputs[j].value;
+				console.log(" Layer=" + x + "   depth=" + j + "  node=" + v + " in=" + i ); 
+			}
+		}
+	}, 
+
 	test_math : function() {
 		var w = [.15,.2,.35];
 		var i = [.05,.1,1];
@@ -123,14 +152,10 @@ UnitTest.prototype = {
 	test_feedforward : function() {
 		var isOk = false;
 
-		//for ( var x in this.NN.matrix ) {
-		//	for ( var i in this.NN.matrix[x].nodes) {
-		//		console.log( x + "   " + i + "=" + this.NN.matrix[x].nodes[i]);
-		//	}
-		//}
-		var expected = 0.3775;
+		var expected = 0.593; // after sigmoid
 		var actual = this.NN.matrix[0].nodes[0];
-		isOk = expected === actual;
+		actual = actual.toFixed(3);
+		isOk = expected == actual;
 		var verdict = isOk ? "PASS" : "FAIL";
 		console.log(verdict + "\ttest_feedforward");
 		if ( ! isOk ) {

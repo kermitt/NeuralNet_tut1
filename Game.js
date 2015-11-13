@@ -20,23 +20,56 @@ var NeuralNet = function(initial_inputs, layer_count, depth_count) {
 	}
 };
 NeuralNet.prototype = {
+	feedforward : function() {
+		console.log("Feedforward!");
+
+		for ( var layer in this.matrix ) {
+			var in_size = this.matrix[layer]["inputs"].length;
+			for ( var i = 0; i < in_size; i++ ) {
+				var value = this.matrix[layer]["inputs"][i];
+				var result = 0;
+				var ary = this.matrix[layer]["weights"][i];
+				var out = ">" + value + "|   "; 
+				for ( var j = 0; j < ary.length; j++ ) {
+					result += value * ary[j];
+					out += ary[j] + "    ";
+				}
+				console.log("i " + i + "   j " + j + "   result " + result + out ); 
+			}
+		}
+	},
+	mult : function( obj, multiplicand, layer ) {
+
+// wren 
+console.log(" I am obj " + obj );
+console.log(" I am mu " + multiplicand);
+console.log(" I am lay " + layer ); 
+console.log(" I am thing : " + obj["weights"][layer][0] + " and my length is "  + obj["weights"][layer].length  );
+console.log(" START ......... ") ; 
+		for ( var i = 0; i < obj["weights"].length; i++) { 
+			console.log(" mult i " + i + "  and " +obj["weights"][i][layer] );
+		}
+		console.log(" END ......... ") ; 
+
+	},
 	display : function() {
 		for ( var layer in this.matrix ) {
 			console.log("layer: " + layer );
 			var o = this.matrix[layer];
 			var in_size = this.matrix[layer]["inputs"].length;
-//			var wt_size = this.matrix[layer]["weights"].length;
 			var nd_size = this.matrix[layer]["nodes"].length;
 
+			// Mostly inputs will be more than nodes, 
+			// but the first time inputs will likely be smaller
+			// and equal is totally possible also.
 			var most = in_size > nd_size ? in_size : nd_size; 
-
 			for ( var i = 0; i < most; i++ ) {
-				var out = i + " "; 
+				var out = "\t"; 
 				if ( this.matrix[layer]["nodes"][i] !== undefined ) {
 					out += " node: " + this.matrix[layer]["nodes"][i].toFixed(3) + "\t";
 				} else {
 					//out += " node: --.--- ";
-					out += " node:        ";
+					out += "                ";
 				}
 				if ( this.matrix[layer]["inputs"][i] !== undefined ) {
 
@@ -51,11 +84,11 @@ NeuralNet.prototype = {
 		}
 	},
 	buildInputs : function( inputs_count  ) { 
-		inputs_count += 1; // the Bias
 		var inputs = [];
 		for ( var i = 0; i < inputs_count; i++ ) {
 			inputs[i] = -1;
 		}
+		inputs.push(1); // add the bias
 		return inputs;
 	},
 	buildWeights : function( inputs_count, depth ) {
@@ -87,30 +120,37 @@ var UnitTest = function(){
 	this.NN = new NeuralNet( ary,layers,depth);
 	this.setup();
 	this.NN.display();
+	this.NN.feedforward();
+	this.mult();
 }
 
 UnitTest.prototype = {
+	mult : function() { 
+		// wren
+		var answer = this.NN.mult( this.NN.matrix[0],0,0 );
+//		console.log("mult " + answer ); 
+	},
 	setup : function() {
 
 		// set the weights to permit testing the results
 		// with known inputs
 
 		// layer 1, node 1
-		this.NN.matrix[0]["weights"][0][0] = .15;
-		this.NN.matrix[0]["weights"][1][0] = .2;
-		this.NN.matrix[0]["weights"][2][0] = .35;
+		this.NN.matrix[0]["weights"][0][0] = .115;
+		this.NN.matrix[0]["weights"][1][0] = .22;
+		this.NN.matrix[0]["weights"][2][0] = .335;
 		// layer 1, node 2
-		this.NN.matrix[0]["weights"][0][1] = .2;
-		this.NN.matrix[0]["weights"][1][1] = .3;
-		this.NN.matrix[0]["weights"][2][1] = .35;
+		this.NN.matrix[0]["weights"][0][1] = .42;
+		this.NN.matrix[0]["weights"][1][1] = .53;
+		this.NN.matrix[0]["weights"][2][1] = .635;
 		// layer 2, node 1
-		this.NN.matrix[1]["weights"][0][0] = .4;
-		this.NN.matrix[1]["weights"][1][0] = .5;
-		this.NN.matrix[1]["weights"][2][0] = .6;
+		this.NN.matrix[1]["weights"][0][0] = .74;
+		this.NN.matrix[1]["weights"][1][0] = .85;
+		this.NN.matrix[1]["weights"][2][0] = .96;
 		// layer 2, node 2
-		this.NN.matrix[1]["weights"][0][1] = .45;
-		this.NN.matrix[1]["weights"][1][1] = .55;
-		this.NN.matrix[1]["weights"][2][1] = .6;
+		this.NN.matrix[1]["weights"][0][1] = .045;
+		this.NN.matrix[1]["weights"][1][1] = .155;
+		this.NN.matrix[1]["weights"][2][1] = .26;
 		
 
 	}

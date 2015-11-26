@@ -13,6 +13,12 @@ Statistics.prototype = {
         var sd = Math.sqrt( s2 );
         return sd;
     },
+    z_score : function( sd, x_bar, observation ) {
+        // how many standard deviations is data point is from the mean
+        // i.e., distance from x_bar per standard deviation an instance is
+
+        return ( observation - x_bar ) / sd;
+    },
 
     getMean : function( ary ) {
         var x_bar = 0;

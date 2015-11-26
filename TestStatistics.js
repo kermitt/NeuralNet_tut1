@@ -4,8 +4,22 @@ var UnitTest = function() {
     this.stats = new Statistics();
     this.standardDeviation();
     this.mean();
+    this.z_score();
 }
 UnitTest.prototype = {
+
+    z_score : function() {
+        var sd = 23.7;
+        var x_bar = 145.2;
+        var observation = 175;
+
+        var actual = this.stats.z_score(sd,x_bar,observation);
+        actual = actual.toFixed(2);
+        var expected = 1.26;
+
+        this.verdict(expected == actual, "z_score: " + actual);
+    },
+
     standardDeviation: function() {
         var expected = 14.63;
         var ary = [3, 5, 7, 7, 38];
@@ -13,6 +27,7 @@ UnitTest.prototype = {
         actual = actual.toFixed(2);
         this.verdict(expected == actual, "standardDeviation: " + actual);
     },
+
     mean: function() {
         var data = this.stanfordWeightMeasurementsClassData();
 

@@ -7,6 +7,13 @@ var NeuralNet = function() {
 }
 NeuralNet.prototype = {
 
+    get_total_error : function(x) {
+        x = (0.01 - x); 
+        x = Math.pow(x,2);
+        x *= 0.5;
+        return x; 
+    },       
+
     step1_multiply: function() {
 
         var all_results = [];
@@ -39,6 +46,13 @@ NeuralNet.prototype = {
             for (var depth = 0; depth < input_ary.length; depth++) {
                 this.inputs[layer][depth] = all_results[layer][depth];
             }
+        }
+
+        var output_layer = this.inputs.length - 1; 
+        for ( var i = 0; i < this.inputs[output_layer].length; i++ ){
+            var x = this.inputs[output_layer][i]; 
+            x = this.get_total_error( x ); 
+            this.inputs[output_layer][i] = x; 
         }
     },
 

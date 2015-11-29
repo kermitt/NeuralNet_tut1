@@ -4,10 +4,10 @@ var UnitTest = function() {
     this.nn = new NeuralNet();
     this.setup();
     this.nn.step1_multiply();
-    //show(); 
-    this.check_node_values_are_proper();
     this.show();
+    this.check_node_values_are_proper();
 }
+
 UnitTest.prototype = {
     setup: function() {
         this.nn.weights[0] = [];
@@ -26,8 +26,20 @@ UnitTest.prototype = {
         var expected = [];
         expected.push(0.5932699921071872);
         expected.push(0.5962826992967878);
-        expected.push(0.7513144847519958);
-        expected.push(0.7728703796871754);
+
+        // before the total error is determined by the
+        // get_total_error() call the values would have 
+        // been this...
+        //expected.push(0.7513144847519958);
+        //expected.push(0.7728703796871754);
+        //
+        // However, after the get_total_error() the values 
+        // ought to be: 
+
+        expected.push(0.2747735826515585);
+        expected.push(0.2909856081020276);
+
+
         var count = 0;
         var verdict = "PASS";
         for (var layer in this.nn.inputs) {
